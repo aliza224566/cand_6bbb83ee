@@ -1,15 +1,15 @@
-def softmax_classify(W, b, X):
-    C = len(W)      # classes
-    M = len(X)      # samples
-    D = len(X[0]) if M > 0 else 0
+def bow_transform(corpus, vocab):
+    vocab_index = {term: i for i, term in enumerate(vocab)}
+    out = []
 
-    preds = []
-    for x in X:
-        logits = []
-        for c in range(C):
-            s = sum(W[c][j] * x[j] for j in range(D)) + b[c]
-            logits.append(s)
-        # argmax with smallest index on ties
-        best = max(range(C), key=lambda idx: (logits[idx], -idx))
-        preds.append(best)
-    return preds
+    for doc in corpus:
+        tokens = doc.split()          # whitespace tokenization
+        counts = [0] * len(vocab)
+
+        for tok in tokens:
+            if tok in vocab_index:    # ignore tokens not in vocab
+                counts[vocab_index[tok]] += 1
+
+        out.append(counts)
+
+    return out
