@@ -1,22 +1,24 @@
-def standardize_columns(X):
-    if not X:
-        return []
+def top_k_cosine(query, docs, k):
+    import math
 
-    rows, cols = len(X), len(X[0])
-    out = [[0]*cols for _ in range(rows)]
+    def dot(a, b):
+        return sum(x*y for x, y in zip(a, b))
 
-    for j in range(cols):
-        col = [X[i][j] for i in range(rows)]
-        mean = sum(col) / rows
-        var = sum((x - mean)**2 for x in col) / rows  # population variance
-        std = var ** 0.5
+    def norm(v):
+        return math.sqrt(sum(x*x for x in v))
 
-        if std == 0:
-            for i in range(rows):
-                out[i][j] = 0.0
+    qn = norm(query)
+    sims = []
+
+    for i, d in enumerate(docs):
+        dn = norm(d)
+        if qn == 0 or dn == 0:
+            sim = 0
         else:
-            for i in range(rows):
-                z = (X[i][j] - mean) / std
-                out[i][j] = round(z, 4)
+            sim = dot(query, d) / (qn * dn)
+        sims.append((sim, i))
 
-    return out
+    # sort: highest similarity first, tie → smaller index
+    sims.sort(key=lambda x: (-x[0], x[1]))
+
+    return [idx for (_, idx) in sims[:k]]
