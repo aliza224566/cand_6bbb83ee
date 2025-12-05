@@ -1,24 +1,20 @@
-def top_k_cosine(query, docs, k):
-    import math
+def perceptron_epoch(X, y, w, b, lr):
+    n_samples = len(X)
+    n_features = len(X[0]) if n_samples > 0 else 0
 
-    def dot(a, b):
-        return sum(x*y for x, y in zip(a, b))
+    for i in range(n_samples):
+        xi = X[i]
+        yi = y[i]
 
-    def norm(v):
-        return math.sqrt(sum(x*x for x in v))
+        # compute w·x + b
+        dot = sum(w[j] * xi[j] for j in range(n_features)) + b
 
-    qn = norm(query)
-    sims = []
+        # check mistake condition
+        if yi * dot <= 0:
+            # update weights
+            for j in range(n_features):
+                w[j] += lr * yi * xi[j]
+            # update bias
+            b += lr * yi
 
-    for i, d in enumerate(docs):
-        dn = norm(d)
-        if qn == 0 or dn == 0:
-            sim = 0
-        else:
-            sim = dot(query, d) / (qn * dn)
-        sims.append((sim, i))
-
-    # sort: highest similarity first, tie → smaller index
-    sims.sort(key=lambda x: (-x[0], x[1]))
-
-    return [idx for (_, idx) in sims[:k]]
+    return [w, b]
