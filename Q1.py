@@ -1,10 +1,15 @@
-def confusion_matrix(y_true, y_pred, labels):
-    n = len(labels)
-    index = {label: i for i, label in enumerate(labels)}
-    cm = [[0]*n for _ in range(n)]
+def softmax_classify(W, b, X):
+    C = len(W)      # classes
+    M = len(X)      # samples
+    D = len(X[0]) if M > 0 else 0
 
-    for t, p in zip(y_true, y_pred):
-        if t in index and p in index:
-            cm[index[t]][index[p]] += 1
-
-    return cm
+    preds = []
+    for x in X:
+        logits = []
+        for c in range(C):
+            s = sum(W[c][j] * x[j] for j in range(D)) + b[c]
+            logits.append(s)
+        # argmax with smallest index on ties
+        best = max(range(C), key=lambda idx: (logits[idx], -idx))
+        preds.append(best)
+    return preds
