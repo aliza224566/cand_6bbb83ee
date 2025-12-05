@@ -1,15 +1,24 @@
-def softmax_classify(W, b, X):
-    C = len(W)      # classes
-    M = len(X)      # samples
-    D = len(X[0]) if M > 0 else 0
+def top_k_cosine(query, docs, k):
+    import math
 
-    preds = []
-    for x in X:
-        logits = []
-        for c in range(C):
-            s = sum(W[c][j] * x[j] for j in range(D)) + b[c]
-            logits.append(s)
-        # argmax with smallest index on ties
-        best = max(range(C), key=lambda idx: (logits[idx], -idx))
-        preds.append(best)
-    return preds
+    def dot(a, b):
+        return sum(x*y for x, y in zip(a, b))
+
+    def norm(v):
+        return math.sqrt(sum(x*x for x in v))
+
+    qn = norm(query)
+    sims = []
+
+    for i, d in enumerate(docs):
+        dn = norm(d)
+        if qn == 0 or dn == 0:
+            sim = 0
+        else:
+            sim = dot(query, d) / (qn * dn)
+        sims.append((sim, i))
+
+    # sort: highest similarity first, tie → smaller index
+    sims.sort(key=lambda x: (-x[0], x[1]))
+
+    return [idx for (_, idx) in sims[:k]]
